@@ -1,0 +1,89 @@
+<html>
+<header>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <h1>
+    <a href="/">Home</a>
+    <a href="/addbook">Add Book</a>
+    <a href="/addauthor">Add Author</a>
+    <a href="/getbooks">View All Books</a>
+    <a href="/getauthors">View All Authors</a>
+    <a href="/updateauthor">Update Author</a>
+    <a href="/deletebook">Delete Book</a>
+  </h1>
+</header>
+<style>
+    table {
+        width: 100%;
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid green;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 15px;
+        text-align: left;
+    }
+
+    table#t01 tr:nth-child(even) {
+        background-color: #f2f2f2
+    }
+
+    table#t01 tr:nth-child(odd) {
+        background-color: #fff;
+    }
+
+    table#t01 th {
+        background-color: green;
+        color: white;
+    }
+</style>
+
+
+<body>
+    <table id="t01">
+        <tr>
+            <th>
+                Title
+            </th>
+            <th>
+                Author id
+            </th>
+            <th>
+                ISBN
+            </th>
+            <th>
+                Date of Publication
+            </th>
+            <th>
+                Summary
+            </th>
+        </tr>
+        <% for(let i=0;i<books.length;i++){ %>
+        <tr>
+            <td>
+                <%= books[i].title %>
+            </td>
+            <td>
+                <%= books[i]._id %>
+            </td>
+            <td>
+                <%= books[i].isbn %>
+            </td>
+            <td>
+                <%= books[i].date_of_publication %>
+            </td>
+            <td>
+                <%= books[i].summary %>
+            </td>
+        </tr>
+        <%} %>
+    </table>
+</body>
+<img src="allbooks.jpg" width="310" height="232" />
+
+</html>

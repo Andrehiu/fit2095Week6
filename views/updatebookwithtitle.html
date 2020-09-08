@@ -1,0 +1,24 @@
+<html>
+<header>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <h1>
+    <a href="/">Home</a>
+    <a href="/addbook">Add Book</a>
+    <a href="/getbooks">View All Books</a>
+    <a href="/updatebook">Update Book</a>
+    <a href="/deletebook">Delete Book</a>
+  </h1>
+</header>
+<body>
+  <h1>Update an existing book</h1>
+  <img src="change.jpg" width="310" height="206" />
+  <div class="container">
+    <form id ="updateBookTitleForm" class="updateBookTitleForm" action="/updateBookTitle" method="POST">
+      Title <input type="text" name="title" /> <br />
+      Author <input type="text" name="author"/><br />
+      <button class="submitbtn">Submit</button>
+    </form>
+  </div>
+</body>
+
+</html>

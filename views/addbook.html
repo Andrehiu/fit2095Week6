@@ -1,0 +1,33 @@
+
+<html>
+<header>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <h1>
+    <a href="/">Home</a>
+    <a href="/addbook">Add Book</a>
+    <a href="/addauthor">Add Author</a>
+    <a href="/getbooks">View All Books</a>
+    <a href="/getauthors">View All Authors</a>
+    <a href="/updateauthor">Update Author</a>
+    <a href="/deletebook">Delete Book</a>
+  </h1>
+</header>
+<body onload="pageload()">
+<h1>Add a new book</h1>
+<img src="newemployee.jpg" width="310" height="206" />
+  <div class="container">
+    <form id ="newBookForm" class="newBookForm" action="/newBook" method="POST">
+      Title <input type="text" name="title" /> <br />
+      Author ID <select name="authorid" />
+      <% for(let i=0;i<authors.length;i++){ %>
+      <option value= "<%= authors[i]._id %>"><%=authors[i]._id %></option>
+      <%} %></select><br />
+      ISBN <input type="text" id="isbn" name="isbn" value="<%= generatedisbn %>"/><br />
+      Date of Publication <input type="date" name="dop" /><br />
+      Summary <input type="text" name="summary" /><br />
+      <button class="submitbtn">Submit</button>
+    </form>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,89 @@
+<html>
+<header>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <h1>
+    <a href="/">Home</a>
+    <a href="/addbook">Add Book</a>
+    <a href="/addauthor">Add Author</a>
+    <a href="/getbooks">View All Books</a>
+    <a href="/getauthors">View All Authors</a>
+    <a href="/updateauthor">Update Author</a>
+    <a href="/deletebook">Delete Book</a>
+  </h1>
+</header>
+<style>
+    table {
+        width: 100%;
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid green;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 15px;
+        text-align: left;
+    }
+
+    table#t01 tr:nth-child(even) {
+        background-color: #f2f2f2
+    }
+
+    table#t01 tr:nth-child(odd) {
+        background-color: #fff;
+    }
+
+    table#t01 th {
+        background-color: green;
+        color: white;
+    }
+</style>
+
+
+<body>
+    <table id="t01">
+        <tr>
+            <th>
+                ID
+            </th>
+            <th>
+                First Name
+            </th>
+            <th>
+                Last Name
+            </th>
+            <th>
+                Date of Birth
+            </th>
+            <th>
+                Number of Books
+            </th>
+        </tr>
+        <% for(let i=0;i<authors.length;i++){ %>
+        <tr>
+            <td>
+                <%= authors[i]._id %>
+            </td>
+            <td>
+                <%= authors[i].name.firstName %>
+            </td>
+            <td>
+                <%= authors[i].name.lastName %>
+            </td>
+            <td>
+                <%= authors[i].date_of_birth %>
+            </td>
+            <td>
+                <%= authors[i].numBooks %>
+            </td>
+        </tr>
+        <%} %>
+    </table>
+</body>
+<img src="getauthors.jpg" width="480" height="390" />
+
+</html>

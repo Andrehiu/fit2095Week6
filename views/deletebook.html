@@ -1,0 +1,23 @@
+<html>
+<header>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <h1>
+    <a href="/">Home</a>
+    <a href="/addNewEmployee">Add Book</a>
+    <a href="/getbooks">View All Books</a>
+    <a href="/updatebook">Update Book</a>
+    <a href="/deletebook">Delete Book</a>
+  </h1>
+</header>
+<body>
+  <h1>Delete a book from records</h1>
+  <img src="deletebook.jpg" width="310" height="206" />
+  <div class="container">
+    <form id ="deleteBookForm" action="/deletebook" method="POST">
+      ISBN For Deletion <input type="text" name="isbn" /> <br />
+      <button class="submitbtn">Submit</button>
+    </form>
+  </div>
+</body>
+
+</html>

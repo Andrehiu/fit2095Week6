@@ -1,0 +1,33 @@
+
+<html>
+<header>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <h1>
+    <a href="/">Home</a>
+    <a href="/addbook">Add Book</a>
+    <a href="/addauthor">Add Author</a>
+    <a href="/getbooks">View All Books</a>
+    <a href="/getauthors">View All Authors</a>
+    <a href="/updateauthor">Update Author</a>
+    <a href="/deletebook">Delete Book</a>
+  </h1>
+</header>
+<body onload="pageload()">
+<h1>Add a new Author</h1>
+<img src="newemployee.jpg" width="310" height="206" />
+  <div class="container">
+    <form id ="newAuthorForm" class="newAuthorForm" action="/newAuthor" method="POST">
+      First Name<input type="text" name="fname" /> <br />
+      Last Name<input type="text" name="lname" /> <br />
+      Date of Birth <input type="date" name="dob"/><br />
+      State<input type="text" name="state"/><br />
+      Suburb<input type="text" name="suburb"/><br />
+      Street<input type="text" name="street"/><br />
+      Unit<input type="text" name="unit"/><br />
+      NumBooks<input type="text" name="numbooks"/><br />
+      <button class="submitbtn">Submit</button>
+    </form>
+  </div>
+</body>
+
+</html>
