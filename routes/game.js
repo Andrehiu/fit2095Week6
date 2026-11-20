@@ -70,7 +70,7 @@ const FALLBACK_BOOK_DATA = [
   ['Coffee First: A Rare Collection', 'Dog With Coffee'],
   ['This Is Fine: Fire Safety for Libraries', 'Dog With Coffee'],
   ['Burning Room, Calm Mind', 'Dog With Coffee'],
-  ['Dicks Out: A Zoo Remembrance', 'Harambe Memorial'],
+  ['Gone But Not Forgotten: A Zoo Remembrance', 'Harambe Memorial'],
   ['Gone Too Soon: Gorilla Biographies', 'Harambe Memorial'],
   ['Stonks Only Go Up: Investing in Library Cards', 'Stonks Guy'],
   ['Not Stonks: When Fines Compound', 'Stonks Guy'],
@@ -305,3 +305,4 @@ module.exports._resetRateLimitForTests = _resetRateLimitForTests;
 module.exports.jsonErrorHandler = jsonErrorHandler;
 module.exports.FALLBACK_BOOKS = FALLBACK_BOOKS;
 module.exports.FALLBACK_AUTHORS = FALLBACK_AUTHORS;
+module.exports.fallbackContent = fallbackContent;

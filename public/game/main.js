@@ -1,6 +1,7 @@
 // OVERDUE! — Night Shift at the Meme Library
 // Engine: fixed-timestep loop, flow-field AI, dynamic lighting, procedural audio, roguelite perks.
-import { W, H, CELL, COLS, ROWS, SAFE, generateArena, isSolidPx, cellOf, edgeCells, idx } from './arena.js';
+import { W, H, CELL, COLS, ROWS, SAFE, PORTRAIT, setOrientation, generateArena, isSolidPx, cellOf, edgeCells, idx } from './arena.js';
+import { createBackend, BUILTIN_CONTENT } from './backend.js';
 import { computeFlowField, lineOfSight } from './flowfield.js';
 import { composeWave } from './waves.js';
 import { baseStats, rollUpgrades } from './upgrades.js';
@@ -24,21 +25,22 @@ const settings = Object.assign({ sfx: true, music: true, lights: true, motion: t
 const sound = new SoundEngine();
 sound.sfxOn = settings.sfx; sound.musicOn = settings.music;
 
-const FALLBACK_CONTENT = {
+const FALLBACK_CONTENT = BUILTIN_CONTENT || {
   source: 'offline',
   books: [
-    { title: 'Much Wow: A Doge Memoir', author: 'Shiba Inu' },
-    { title: 'One Does Not Simply Return a Book On Time', author: 'Boromir Gondorson' },
-    { title: 'This Is Fine: Fire Safety for Libraries', author: 'Question Hound' },
-    { title: 'Never Gonna Give You Up (the Late Fees)', author: 'R. Astley' },
+    { title: 'Much Wow: A Doge Memoir', author: 'Doge Shibe' },
+    { title: 'One Does Not Simply Return a Book On Time', author: 'Boromir of Gondor' },
+    { title: 'This Is Fine: Fire Safety for Libraries', author: 'Dog With Coffee' },
+    { title: 'Never Gonna Let You Down: A Librarian Oath', author: 'Rick Astley' },
   ],
-  authors: [{ name: 'Grumpy Cat' }, { name: 'Bad Luck Brian' }, { name: 'Philosoraptor' }],
+  authors: [{ name: 'Grumpy Cat' }, { name: 'Stonks Guy' }, { name: 'Nyan Cat' }],
 };
 let content = FALLBACK_CONTENT;
-fetch('/api/game/content')
-  .then((r) => (r.ok ? r.json() : null))
-  .then((d) => { if (d && Array.isArray(d.books) && d.books.length) content = d; updateSourceBadge(); })
-  .catch(updateSourceBadge);
+const backend = createBackend();
+(BUILTIN_CONTENT ? Promise.resolve(null) : backend.content())
+  .then((d) => { if (d && Array.isArray(d.books) && d.books.length) content = d; })
+  .catch(() => {})
+  .finally(updateSourceBadge);
 
 function updateSourceBadge() {
   const el = $('#source');
@@ -48,7 +50,9 @@ function updateSourceBadge() {
     ? `📚 Ammo: ${n} real titles from your library database`
     : content.source === 'fallback'
       ? `📚 Ammo: ${n} titles from the built-in meme catalogue (add books to your library to use them!)`
-      : '📚 Offline mode — built-in titles';
+      : content.source === 'phone'
+        ? `📚 Ammo: ${n} titles from the Meme Library catalogue`
+        : '📚 Offline mode — built-in titles';
 }
 const pickBook = () => content.books[(Math.random() * content.books.length) | 0];
 const pickAuthor = () => {
@@ -59,9 +63,25 @@ const short = (s, n = 28) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const bookColor = (title) => `hsl(${hashString(title) % 360} 65% 55%)`;
 
 // ======================================================================
-// Canvas sizing (logical 960x540, letterboxed, HiDPI aware)
+// Canvas sizing (logical 960x540 or 540x960 on portrait phones, letterboxed, HiDPI aware)
 // ======================================================================
 let dpr = 1, viewScale = 1;
+const isPortraitScreen = () => innerHeight > innerWidth * 1.15;
+/** Pick the arena shape for the current screen. Only called between runs. */
+function applyLayout(force = false) {
+  const want = isPortraitScreen();
+  if (force || want !== PORTRAIT) {
+    setOrientation(want);
+    LAMPS = [[44, 44], [W - 44, 44], [44, H - 44], [W - 44, H - 44]];
+    lightCanvas.width = W * LS; lightCanvas.height = H * LS;
+    arena = generateArena(game.seed, Math.max(1, game.wave));
+    player.x = W / 2; player.y = H / 2;
+    buildBackground();
+    flow = null;
+  }
+  document.body.classList.toggle('portrait', PORTRAIT);
+  resize();
+}
 function resize() {
   const scale = Math.min(innerWidth / W, innerHeight / H);
   const cw = Math.floor(W * scale), ch = Math.floor(H * scale);
@@ -71,8 +91,10 @@ function resize() {
   canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
   viewScale = cw / W;
 }
-addEventListener('resize', resize);
-resize();
+addEventListener('resize', () => {
+  // Re-shape the arena on rotation only while no run is in progress.
+  if (game.state === 'title' || game.state === 'gameover') applyLayout(); else resize();
+});
 
 // ======================================================================
 // Input: keyboard + mouse, touch (virtual stick), gamepad
@@ -121,13 +143,13 @@ canvas.addEventListener('pointerdown', (e) => {
   if (e.pointerType === 'touch') {
     e.preventDefault();
     enableTouch();
-    if (p.x < W * 0.45 && touch.moveId === null) { touch.moveId = e.pointerId; touch.mx0 = touch.mx = p.x; touch.my0 = touch.my = p.y; }
+    if (touch.moveId === null) { touch.moveId = e.pointerId; touch.mx0 = touch.mx = p.x; touch.my0 = touch.my = p.y; }
     else if (touch.aimId === null) { touch.aimId = e.pointerId; touch.ax = p.x; touch.ay = p.y; }
-    canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture(e.pointerId); } catch { /* synthetic or stale pointer */ }
     return;
   }
   if (touch.enabled) { touch.enabled = false; document.body.classList.remove('touch'); }
-  canvas.setPointerCapture(e.pointerId);
+  try { canvas.setPointerCapture(e.pointerId); } catch { /* synthetic or stale pointer */ }
   mouse.x = p.x; mouse.y = p.y; mouse.seen = true;
   if (e.button === 0) mouse.down = true;
   if (e.button === 2 && game.state === 'playing') actions.shhh = true;
@@ -155,6 +177,7 @@ function enableTouch() {
   touch.enabled = true;
   document.body.classList.add('touch');
 }
+const btnDash = $('#btnDash'), btnShhh = $('#btnShhh');
 $('#btnDash').addEventListener('pointerdown', (e) => { e.preventDefault(); actions.dash = true; });
 $('#btnShhh').addEventListener('pointerdown', (e) => { e.preventDefault(); actions.shhh = true; });
 $('#btnPause').addEventListener('click', () => (game.state === 'playing' ? pause() : null));
@@ -220,8 +243,16 @@ const comboMult = () => Math.min(4, 1 + Math.floor(game.combo / 5) * 0.5);
 // ======================================================================
 // Run / wave flow
 // ======================================================================
+let wakeLock = null;
+async function keepAwake() {
+  try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => (wakeLock = null)); } } catch { /* refused */ }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && game.state === 'playing') keepAwake(); });
+
 function startRun() {
   sound.init();
+  keepAwake();
+  applyLayout();
   game.seed = (Math.random() * 1e9) | 0;
   rng = new Rng(game.seed);
   Object.assign(game, { wave: 0, score: 0, kills: 0, combo: 0, comboT: 0, bestCombo: 0, playTime: 0, owned: {},
@@ -770,10 +801,17 @@ function killEnemy(e) {
   }
 }
 
+/** Haptic feedback on phones; silently ignored where unsupported or blocked. */
+function buzz(pattern) {
+  if (!settings.motion || !touch.enabled) return;
+  try { navigator.vibrate && navigator.vibrate(pattern); } catch { /* not allowed */ }
+}
+
 function hurtPlayer(sx, sy) {
   const p = player;
   if (p.inv > 0 || p.dashT > 0 || game.state !== 'playing') return;
   p.hp -= 1;
+  buzz(p.hp <= 0 ? [60, 40, 120] : 35);
   p.inv = stats.iframes;
   game.noHitWave = false;
   game.combo = 0; game.comboT = 0;
@@ -977,7 +1015,7 @@ function buildBackground() {
   // Walls
   g.strokeStyle = '#120b06'; g.lineWidth = 10; g.strokeRect(0, 0, W, H);
 }
-const LAMPS = [[44, 44], [W - 44, 44], [44, H - 44], [W - 44, H - 44]];
+let LAMPS = [[44, 44], [W - 44, 44], [44, H - 44], [W - 44, H - 44]];
 
 // Light layer: darkness with "holes" punched by light sprites (destination-out), at half resolution.
 const LS = 0.5;
@@ -1291,9 +1329,16 @@ function drawHUD() {
   txt(`WAVE ${game.wave}`, W / 2, 26, 18, '#e8d9b0', 'center');
   if (game.state === 'playing' && !game.boss) txt(`${left} disturbance${left === 1 ? '' : 's'} left`, W / 2, 44, 11, 'rgba(232,217,176,0.8)', 'center');
   // Cooldowns
-  cooldown(30, H - 30, 'DASH', 1 - player.dashCd / stats.dashCd, '#9be7dc');
-  cooldown(80, H - 30, 'SHHH', 1 - player.shhhT / stats.shhhCd, '#b48cff');
-  if (player.rapidT > 0) cooldown(130, H - 30, '☕x2', player.rapidT / 6, '#c69c6d');
+  const kDash = clamp(1 - player.dashCd / stats.dashCd, 0, 1), kShhh = clamp(1 - player.shhhT / stats.shhhCd, 0, 1);
+  if (touch.enabled) {
+    // On touch the on-screen buttons show their own cooldown rings.
+    btnDash.style.setProperty('--k', kDash.toFixed(3)); btnShhh.style.setProperty('--k', kShhh.toFixed(3));
+    if (player.rapidT > 0) cooldown(30, H - 30, '☕x2', player.rapidT / 6, '#c69c6d');
+  } else {
+    cooldown(30, H - 30, 'DASH', kDash, '#9be7dc');
+    cooldown(80, H - 30, 'SHHH', kShhh, '#b48cff');
+    if (player.rapidT > 0) cooldown(130, H - 30, '☕x2', player.rapidT / 6, '#c69c6d');
+  }
   // Ammo ticker
   if (game.ammo && !game.boss) {
     ctx.globalAlpha = 0.85;
@@ -1302,7 +1347,7 @@ function drawHUD() {
   }
   // Boss bar
   if (game.boss) {
-    const b = game.boss, bw = 460, bx = (W - bw) / 2, by = H - 34;
+    const b = game.boss, bw = Math.min(460, W - 120), bx = (W - bw) / 2, by = PORTRAIT ? 86 : H - 34;
     txt(`${b.name}`, W / 2, by - 6, 13, '#d6c8ff', 'center');
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(bx - 2, by - 2, bw + 4, 14);
     ctx.fillStyle = b.phase === 3 ? '#ff2d55' : '#6c3cff'; ctx.fillRect(bx, by, bw * clamp(b.hp / b.maxHp, 0, 1), 10);
@@ -1381,6 +1426,7 @@ document.addEventListener('click', (e) => {
   sound.init(); sound.play('click');
   const act = b.dataset.act;
   if (act === 'play' || act === 'again') startRun();
+  else if (act === 'fullscreen') toggleFullscreen();
   else if (act === 'howto') showScreen('howto');
   else if (act === 'settings') { settingsReturn = game.state === 'paused' ? 'pause' : 'title'; showScreen('settings'); }
   else if (act === 'leaderboard') { showScreen('leaderboard'); loadLeaderboard($('#lbList')); }
@@ -1389,13 +1435,21 @@ document.addEventListener('click', (e) => {
   else if (act === 'quit' || act === 'menu') { game.state = 'title'; sound.setIntensity(0); sound.setMuffled(false); clearWorld(); player = makePlayer(); showScreen('title'); }
 });
 
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else {
+      await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+      try { await screen.orientation.lock(isPortraitScreen() ? 'portrait' : 'landscape'); } catch { /* unsupported */ }
+    }
+  } catch { toast('Fullscreen isn\u2019t available here'); }
+}
+
 async function loadLeaderboard(list, highlight = null) {
   list.textContent = '';
   const li = document.createElement('li'); li.className = 'muted'; li.textContent = 'Checking the records…'; list.appendChild(li);
   try {
-    const r = await fetch('/api/scores?limit=10');
-    if (!r.ok) throw new Error(r.status);
-    const rows = await r.json();
+    const rows = await backend.top(10);
     list.textContent = '';
     if (!rows.length) { li.textContent = 'No scores yet — be the first!'; list.appendChild(li); return; }
     rows.forEach((row, i) => {
@@ -1407,8 +1461,8 @@ async function loadLeaderboard(list, highlight = null) {
       el.append(rank, name, sc);
       list.appendChild(el);
     });
-  } catch {
-    li.textContent = 'Leaderboard unavailable (is the library server running?)';
+  } catch (err) {
+    li.textContent = backend.kind === 'artifact' ? (err && err.message) || 'The Hall of Fame is unavailable right now.' : 'Leaderboard unavailable (is the library server running?)';
   }
 }
 
@@ -1438,7 +1492,7 @@ function showGameOver() {
   $('#nameInput').value = loadJSON('overdue.name.v1').name || '';
   showScreen('gameover');
   loadLeaderboard($('#goList'));
-  $('#nameInput').focus();
+  if (!touch.enabled) $('#nameInput').focus();
 }
 
 $('#scoreForm').addEventListener('submit', async (e) => {
@@ -1451,10 +1505,8 @@ $('#scoreForm').addEventListener('submit', async (e) => {
   const btn = e.submitter || $('#scoreForm button');
   btn.disabled = true; msg.textContent = 'Filing your record…';
   try {
-    const r = await fetch('/api/scores', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || `Server said ${r.status}`);
-    msg.textContent = `Filed! You rank #${data.rank} in the Hall of Fame.`;
+    const res = await backend.submit(payload);
+    msg.textContent = res.message;
     $('#scoreForm').hidden = true;
     loadLeaderboard($('#goList'), payload);
   } catch (err) {
@@ -1484,7 +1536,7 @@ function frame(now) {
   render();
 }
 
-buildBackground();
+applyLayout(true);
 updateSourceBadge();
 showScreen('title');
 document.body.classList.add('ready');

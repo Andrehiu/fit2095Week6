@@ -95,3 +95,37 @@ body.touch.in-game #touchUI { display: block; }
 #btnPause { right: 1em; top: 4.6em; width: 3em !important; height: 3em !important; }
 
 @media (max-height: 420px) { .logo { font-size: 2.8em; } .blurb { display: none; } }
+
+/* ---------- Phones ---------- */
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
+input { -webkit-user-select: text; user-select: text; }
+.touch-hint { display: none; color: var(--teal); }
+body.touch .touch-hint, body.portrait .touch-hint { display: block; }
+.fs-only { display: none; }
+@media (pointer: coarse) { .fs-only { display: block; } .touch-hint { display: block; } }
+
+#touchUI button { width: 5.2em; height: 5.2em; font-size: .85em; font-weight: bold; }
+#btnDash { right: calc(1.2em + env(safe-area-inset-right, 0px)); bottom: calc(1.2em + env(safe-area-inset-bottom, 0px)); background: rgba(155,231,220,.22); border-color: var(--teal); }
+#btnShhh { right: calc(7.2em + env(safe-area-inset-right, 0px)); bottom: calc(1.2em + env(safe-area-inset-bottom, 0px)); background: rgba(180,140,255,.22); border-color: var(--violet); }
+#touchUI button:active { transform: scale(.92); }
+
+/* Portrait arena: narrower overlays */
+body.portrait .logo { font-size: 3.2em; }
+body.portrait .cards { flex-direction: column; width: 100%; max-width: 24em; gap: .6em; }
+body.portrait .card { width: 100%; min-height: 0; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; text-align: left; padding: .8em 1em .8em 2.2em; gap: .2em .8em; }
+body.portrait .card .icon { font-size: 1.8em; }
+body.portrait .card .desc { flex-basis: 100%; }
+body.portrait .card .lvl { margin-top: 0; }
+body.portrait .cols { flex-direction: column; gap: 1em; align-items: stretch; }
+body.portrait .lb { min-width: 0; width: 100%; }
+body.portrait .controls { grid-template-columns: 1fr; }
+body.portrait .controls dd { margin-bottom: .4em; }
+body.portrait .screen { justify-content: flex-start; padding-top: 2.5em; }
+body.portrait #title { justify-content: center; }
+.touch-only { display: none; }
+body.touch .touch-only { display: inline; }
+body.touch .no-touch { display: none; }
+body.portrait h2 { font-size: 1.6em; }
+/* cooldown ring on touch buttons: --k goes 0 → 1 as the ability recharges */
+#btnDash, #btnShhh { --k: 1; background-image: conic-gradient(rgba(255,255,255,.28) calc(var(--k) * 360deg), transparent 0); }

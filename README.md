@@ -14,6 +14,14 @@ MongoDB is optional. Without it, the CRUD pages won't load data, but the game st
 
 Play at **http://localhost:8080/game** (also linked from the nav bar). Add `?debug=1` for an FPS counter and test hooks.
 
+## Play on your phone
+
+- **Hosted build:** `npm run build:phone` bundles the game, its styles and the meme catalogue into one self-contained page, `dist/overdue-phone.html`. It needs no server, so you can host it anywhere.
+- **Portrait arena:** on a phone held upright, the game builds a tall 540×960 arena instead of the landscape one.
+- **Touch controls:** drag anywhere to move, and books aim and throw themselves. Your other thumb taps **DASH** and **SHHH**, which show their cooldown as a ring. A second finger aims manually.
+- **Phone extras:** a haptic buzz when you're hit, the screen stays awake while you play, and there's a Fullscreen button.
+- **Hall of Fame:** when hosted as a claude.ai page, scores go to the page's shared store, one personal best per player.
+
 ## The game
 
 You're the night librarian, and the library has come alive. Throw books, dash through danger and **SHHH!** the chaos back into silence.

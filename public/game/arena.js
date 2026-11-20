@@ -2,12 +2,25 @@
 import { Rng, hashString, clamp } from './util.js';
 
 export const CELL = 30;
-export const COLS = 32;
-export const ROWS = 18;
-export const W = COLS * CELL; // 960
-export const H = ROWS * CELL; // 540
+// Grid size is switchable between landscape (32x18 = 960x540) and portrait (18x32 = 540x960)
+// for phones. These are live ES-module bindings, so importers always see the current layout.
+export let COLS = 32;
+export let ROWS = 18;
+export let W = COLS * CELL;
+export let H = ROWS * CELL;
 /** Cells kept clear around the player's spawn point (inclusive bounds). */
-export const SAFE = { x0: 12, y0: 6, x1: 19, y1: 11 };
+export let SAFE = { x0: 12, y0: 6, x1: 19, y1: 11 };
+export let PORTRAIT = false;
+
+/** Switch between the landscape and portrait arena. Call only between runs. */
+export function setOrientation(portrait) {
+  PORTRAIT = !!portrait;
+  COLS = portrait ? 18 : 32;
+  ROWS = portrait ? 32 : 18;
+  W = COLS * CELL; H = ROWS * CELL;
+  const hw = portrait ? 3 : 4, hh = portrait ? 4 : 3; // half-size of the clear zone
+  SAFE = { x0: (COLS >> 1) - hw, y0: (ROWS >> 1) - hh, x1: (COLS >> 1) + hw - 1, y1: (ROWS >> 1) + hh - 1 };
+}
 
 export const idx = (cx, cy) => cy * COLS + cx;
 

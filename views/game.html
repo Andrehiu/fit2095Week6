@@ -20,7 +20,9 @@
         <button data-act="howto">How to play</button>
         <button data-act="leaderboard">Hall of Fame</button>
         <button data-act="settings">Settings</button>
+        <button data-act="fullscreen" class="fs-only">⛶ Fullscreen</button>
       </div>
+      <p class="touch-hint small">On a phone: drag anywhere to move — books aim and throw themselves. Tap DASH and SHHH with your other thumb.</p>
       <p id="source" class="muted small"></p>
       <a class="back-link" href="/">← Back to the library app</a>
     </section>
@@ -29,8 +31,8 @@
       <h2>How to play</h2>
       <div class="cols">
         <dl class="controls">
-          <dt>Move</dt><dd>WASD / Arrows · Left stick · Left-thumb drag</dd>
-          <dt>Throw books</dt><dd>Aim with mouse, hold click · Right stick · Tap right side</dd>
+          <dt>Move</dt><dd>WASD / Arrows · Left stick · Drag anywhere (touch)</dd>
+          <dt>Throw books</dt><dd>Aim with mouse, hold click · Right stick · Automatic on touch (2nd finger aims)</dd>
           <dt>Dash (invulnerable)</dt><dd>Space / Shift · A / RB · DASH button</dd>
           <dt>SHHH! shockwave</dt><dd>E / Q / Right-click · B / LB · SHHH button</dd>
           <dt>Pause</dt><dd>P / Esc · Start</dd>
@@ -70,7 +72,7 @@
     <section id="upgrade" class="screen" hidden>
       <h2 id="upgradeTitle">Choose a perk</h2>
       <div id="cards" class="cards"></div>
-      <p class="muted small">Press 1, 2 or 3 — or click a card.</p>
+      <p class="muted small"><span class="no-touch">Press 1, 2 or 3 — or click a card.</span><span class="touch-only">Tap a card.</span></p>
     </section>
 
     <section id="pause" class="screen" hidden>

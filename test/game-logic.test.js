@@ -112,3 +112,17 @@ test('regression: flow field reaches every free cell on generated arenas', async
     }
   }
 });
+
+test('portrait arenas (phones) are connected, symmetric and keep the spawn zone clear', async () => {
+  const A = await load('arena');
+  A.setOrientation(true);
+  try {
+    assert.equal(A.W, 540); assert.equal(A.H, 960);
+    for (let wave = 1; wave <= 20; wave++) for (const seed of [3, 99, 4242]) {
+      const a = A.generateArena(seed, wave);
+      assert.ok(A.isConnected(a.solid), `connected seed=${seed} wave=${wave}`);
+      for (let y = A.SAFE.y0; y <= A.SAFE.y1; y++) for (let x = A.SAFE.x0; x <= A.SAFE.x1; x++) assert.equal(a.solid[A.idx(x, y)], 0);
+      for (let y = 0; y < A.ROWS; y++) for (let x = 0; x < A.COLS; x++) assert.equal(a.solid[A.idx(x, y)], a.solid[A.idx(A.COLS - 1 - x, y)]);
+    }
+  } finally { A.setOrientation(false); }
+});
