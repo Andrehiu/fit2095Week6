@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05030c">
+  <title>Overdue! · Meme Library</title>
+  <link rel="stylesheet" href="/game/game.css">
+</head>
+<body>
+  <main id="stage">
+    <canvas id="game" aria-label="Overdue! game area"></canvas>
+
+    <section id="title" class="screen" hidden>
+      <h1 class="logo">OVERDUE<span>!</span></h1>
+      <p class="tag">Night Shift at the Meme Library</p>
+      <p class="blurb">The library is closed. The books are not. Keep the peace by any (quiet) means necessary.</p>
+      <div class="menu">
+        <button data-act="play" class="primary">▶ Start shift</button>
+        <button data-act="howto">How to play</button>
+        <button data-act="leaderboard">Hall of Fame</button>
+        <button data-act="settings">Settings</button>
+      </div>
+      <p id="source" class="muted small"></p>
+      <a class="back-link" href="/">← Back to the library app</a>
+    </section>
+
+    <section id="howto" class="screen" hidden>
+      <h2>How to play</h2>
+      <div class="cols">
+        <dl class="controls">
+          <dt>Move</dt><dd>WASD / Arrows · Left stick · Left-thumb drag</dd>
+          <dt>Throw books</dt><dd>Aim with mouse, hold click · Right stick · Tap right side</dd>
+          <dt>Dash (invulnerable)</dt><dd>Space / Shift · A / RB · DASH button</dd>
+          <dt>SHHH! shockwave</dt><dd>E / Q / Right-click · B / LB · SHHH button</dd>
+          <dt>Pause</dt><dd>P / Esc · Start</dd>
+          <dt>Auto-fire · Mute</dt><dd>F · M</dd>
+        </dl>
+        <ul class="bestiary">
+          <li><b>Dust Bunny</b> hops after you.</li>
+          <li><b>Overdue Notice</b> fast, zig-zagging paperwork.</li>
+          <li><b>Loud Patron</b> keeps away and shouts sound rings — dash through them.</li>
+          <li><b>Bookworm</b> a chain; shoot the head and the next segment takes over.</li>
+          <li><b>Late Fee Golem</b> tanky, bursts into coins.</li>
+          <li><b>Rogue Author</b> every 5th wave — named after an author in your library.</li>
+        </ul>
+      </div>
+      <p class="muted small">Chain kills for a combo multiplier (up to ×4). Clear a wave without getting hit for a flawless bonus. Shelves block enemy pages — use them as cover.</p>
+      <div class="menu row"><button data-act="back">Back</button></div>
+    </section>
+
+    <section id="settings" class="screen" hidden>
+      <h2>Settings</h2>
+      <div class="toggles">
+        <label><input type="checkbox" data-k="sfx"> Sound effects</label>
+        <label><input type="checkbox" data-k="music"> Adaptive music</label>
+        <label><input type="checkbox" data-k="lights"> Dynamic lighting</label>
+        <label><input type="checkbox" data-k="motion"> Screen shake &amp; flashes</label>
+        <label><input type="checkbox" data-k="autofire"> Auto-fire (accessibility)</label>
+      </div>
+      <div class="menu row"><button data-act="back">Back</button></div>
+    </section>
+
+    <section id="leaderboard" class="screen" hidden>
+      <h2>Hall of Fame</h2>
+      <ol id="lbList" class="lb"></ol>
+      <div class="menu row"><button data-act="back">Back</button></div>
+    </section>
+
+    <section id="upgrade" class="screen" hidden>
+      <h2 id="upgradeTitle">Choose a perk</h2>
+      <div id="cards" class="cards"></div>
+      <p class="muted small">Press 1, 2 or 3 — or click a card.</p>
+    </section>
+
+    <section id="pause" class="screen" hidden>
+      <h2>Paused</h2>
+      <div class="menu">
+        <button data-act="resume" class="primary">Resume</button>
+        <button data-act="settings">Settings</button>
+        <button data-act="quit">Quit to title</button>
+      </div>
+    </section>
+
+    <section id="gameover" class="screen" hidden>
+      <h2>Shift over</h2>
+      <div class="cols">
+        <div>
+          <dl id="goStats" class="stats"></dl>
+          <form id="scoreForm" autocomplete="off">
+            <label for="nameInput">Sign the logbook:</label>
+            <div class="row">
+              <input id="nameInput" maxlength="12" placeholder="Your name" required>
+              <button type="submit" class="primary">Submit</button>
+            </div>
+          </form>
+          <p id="submitMsg" class="muted small" aria-live="polite"></p>
+        </div>
+        <div>
+          <h3>Hall of Fame</h3>
+          <ol id="goList" class="lb"></ol>
+        </div>
+      </div>
+      <div class="menu row">
+        <button data-act="again" class="primary">↻ Another shift</button>
+        <button data-act="menu">Title</button>
+      </div>
+    </section>
+
+    <div id="touchUI" aria-hidden="true">
+      <button id="btnPause" title="Pause">❚❚</button>
+      <button id="btnShhh">SHHH</button>
+      <button id="btnDash">DASH</button>
+    </div>
+    <div id="toast" role="status" hidden></div>
+    <noscript><p class="screen">This game needs JavaScript.</p></noscript>
+  </main>
+  <script type="module" src="/game/main.js"></script>
+</body>
+</html>

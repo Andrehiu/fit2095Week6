@@ -1,0 +1,97 @@
+:root {
+  --bg: #05030c;
+  --panel: rgba(16, 10, 30, 0.86);
+  --ink: #f3ead2;
+  --muted: #b6a98a;
+  --accent: #ffd54a;
+  --teal: #9be7dc;
+  --violet: #b48cff;
+  --ui-scale: 1;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden;
+  font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace; }
+body { display: flex; align-items: center; justify-content: center; }
+#stage { position: relative; font-size: calc(16px * var(--ui-scale)); }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+body.in-game canvas { cursor: none; }
+body.touch canvas { cursor: auto; }
+
+.screen {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .6em; padding: 1.2em; text-align: center;
+  background: radial-gradient(ellipse at center, rgba(16,10,30,.55), rgba(5,3,12,.92));
+  backdrop-filter: blur(2px); animation: fade .25s ease-out;
+  overflow-y: auto;
+}
+.screen[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .screen { animation: none; } .logo { animation: none !important; } }
+
+.logo { font-size: 4.4em; margin: 0; letter-spacing: .08em; color: var(--accent);
+  text-shadow: 0 0 .3em rgba(255,213,74,.5), .06em .06em 0 #6c3cff; animation: flicker 4s infinite; }
+.logo span { color: #ff6b81; }
+@keyframes flicker { 0%, 92%, 100% { opacity: 1; } 93% { opacity: .5; } 95% { opacity: 1; } 96% { opacity: .7; } }
+.tag { margin: 0; color: var(--violet); font-size: 1.2em; letter-spacing: .15em; text-transform: uppercase; }
+.blurb { max-width: 34em; color: var(--muted); margin: .2em 0 .6em; }
+h2 { margin: 0 0 .3em; font-size: 2em; color: var(--accent); }
+h3 { margin: 0 0 .4em; color: var(--violet); }
+.muted { color: var(--muted); }
+.small { font-size: .8em; max-width: 46em; }
+
+.menu { display: flex; flex-direction: column; gap: .5em; min-width: 16em; }
+.menu.row { flex-direction: row; justify-content: center; min-width: 0; margin-top: .6em; }
+button {
+  font: inherit; color: var(--ink); background: rgba(255,255,255,.06); border: 2px solid rgba(243,234,210,.25);
+  border-radius: .5em; padding: .55em 1.2em; cursor: pointer; transition: transform .08s, background .15s, border-color .15s;
+}
+button:hover, button:focus-visible { background: rgba(255,213,74,.14); border-color: var(--accent); outline: none; transform: translateY(-1px); }
+button.primary { background: var(--accent); color: #241a00; border-color: var(--accent); font-weight: bold; }
+button.primary:hover, button.primary:focus-visible { background: #ffe58a; }
+button:disabled { opacity: .5; cursor: wait; }
+.back-link { color: var(--teal); font-size: .8em; }
+
+.cols { display: flex; gap: 2em; align-items: flex-start; justify-content: center; flex-wrap: wrap; text-align: left; }
+.controls { display: grid; grid-template-columns: auto 1fr; gap: .35em 1em; margin: 0; font-size: .85em; }
+.controls dt { color: var(--accent); }
+.controls dd { margin: 0; color: var(--ink); }
+.bestiary { margin: 0; padding-left: 1.1em; font-size: .85em; max-width: 24em; color: var(--muted); }
+.bestiary b { color: var(--ink); }
+
+.toggles { display: grid; gap: .6em; text-align: left; }
+.toggles label { display: flex; gap: .6em; align-items: center; cursor: pointer; }
+.toggles input { width: 1.2em; height: 1.2em; accent-color: var(--accent); }
+
+.cards { display: flex; gap: 1em; flex-wrap: wrap; justify-content: center; }
+.card { position: relative; width: 12em; min-height: 13em; display: flex; flex-direction: column; align-items: center; gap: .5em;
+  padding: 1.2em .9em; background: linear-gradient(160deg, rgba(108,60,255,.25), rgba(16,10,30,.9)); border-color: rgba(180,140,255,.5); }
+.card .icon { font-size: 2.6em; }
+.card strong { color: var(--accent); }
+.card .desc { font-size: .85em; color: var(--ink); }
+.card .lvl { margin-top: auto; font-size: .75em; color: var(--violet); }
+.card .key { position: absolute; top: .4em; left: .6em; font-size: .75em; color: var(--muted); }
+
+.lb { list-style: none; margin: 0; padding: 0; min-width: 20em; font-size: .9em; }
+.lb li { display: grid; grid-template-columns: 3em 1fr auto; gap: .6em; padding: .3em .6em; border-bottom: 1px solid rgba(255,255,255,.08); }
+.lb li.muted { display: block; }
+.lb li.me { background: rgba(255,213,74,.18); color: var(--accent); }
+.stats { display: grid; grid-template-columns: auto 1fr; gap: .25em 1em; margin: 0 0 1em; }
+.stats dt { color: var(--muted); }
+.stats dd { margin: 0; }
+form .row { display: flex; gap: .5em; margin-top: .3em; }
+input#nameInput { font: inherit; padding: .5em .7em; border-radius: .4em; border: 2px solid rgba(243,234,210,.3); background: #120b20; color: var(--ink); width: 11em; }
+input#nameInput:focus { border-color: var(--accent); outline: none; }
+
+#toast { position: absolute; top: 4.5em; left: 50%; transform: translateX(-50%); background: var(--panel);
+  padding: .4em 1em; border-radius: 2em; border: 1px solid var(--violet); pointer-events: none; }
+
+#touchUI { display: none; }
+body.touch.in-game #touchUI { display: block; }
+#touchUI button { position: absolute; border-radius: 50%; width: 4.4em; height: 4.4em; padding: 0; font-size: .8em;
+  background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.35); touch-action: none; user-select: none; }
+#btnDash { right: 1.2em; bottom: 1.2em; }
+#btnShhh { right: 6.4em; bottom: 1.2em; }
+#btnPause { right: 1em; top: 4.6em; width: 3em !important; height: 3em !important; }
+
+@media (max-height: 420px) { .logo { font-size: 2.8em; } .blurb { display: none; } }

@@ -9,10 +9,13 @@ if (working_path) {
   console.log('Using default working path');
 }
 
+const path = require('path');
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', true); // silence Mongoose 6 -> 7 deprecation warning
 
 const Author = require('./models/author');
 const Book = require('./models/books');
+const gameRoutes = require('./routes/game');
 
 let express = require("express");
 let app = express();
@@ -23,6 +26,8 @@ const randomnumber = require("randomstring");
 const mongodb = require("mongodb");
 const MongoClient = mongodb.MongoClient;
 const url = "mongodb://localhost:27017/";
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/FIT2095';
+const PORT = process.env.PORT || 8080;
 let db;
 
 app.engine("html", require("ejs").renderFile);
@@ -36,10 +41,15 @@ app.use(
     extended: false,
   })
 );
-mongoose.connect('mongodb://localhost:27017/FIT2095', function (err) {
+app.use(express.json());
+
+// Only connect to the DB when run directly (not when required by tests).
+// A failed connection no longer crashes the app: the game API falls back to memory.
+function connectDB() {
+mongoose.connect(MONGO_URL, { serverSelectionTimeoutMS: 2000 }, function (err) {
     if (err) {
-        console.log('Error in Mongoose connection');
-        throw err;
+        console.log('Warning: could not connect to MongoDB (' + err.message + '). Running without a database; game data will be kept in memory.');
+        return;
     }
 console.log('Connected to Mongoose DB');
 //Test new addition
@@ -87,6 +97,7 @@ console.log('Connected to Mongoose DB');
 //         });
 //     });
   });
+}
 app.get("/", function(req, res) {
   console.log("Homepage request");
   let fileName = viewsPath + "index.html";
@@ -178,14 +189,15 @@ app.post("/newBook", function(req, res) {
       newBook.save(function (err) {
           if (err) {
             let fileName = viewsPath + "error.html";
-            res.render(fileName, {error: err});
+            return res.render(fileName, {error: err});
           }
-          else console.log('Book successfully Added to DB');
+          console.log('Book successfully Added to DB');
+          // Only increment the author's book count once the book has actually been saved
+          Author.updateOne({ _id: bookDetails.authorid  }, { $inc: { numBooks: 1 } }, function (err, doc) {//Increments books for author id
+            console.log('Number of books incremented');
+            res.redirect('/getbooks');
+          });
       });
-  Author.updateOne({ _id: bookDetails.authorid  }, { $inc: { numBooks: 1 } }, function (err, doc) {//Increments books for author id
-    console.log('Number of books incremented');
-  });
-  res.redirect('/getbooks');
 });
 
 app.post("/newAuthor", function(req, res) {
@@ -208,9 +220,10 @@ app.post("/newAuthor", function(req, res) {
       newAuthor.save(function (err) {
           if (err) {
             let fileName = viewsPath + "error.html";
-            res.render(fileName, {error: err});
+            return res.render(fileName, {error: err});
           }
-          else console.log('Author successfully Added to DB');
+          console.log('Author successfully Added to DB');
+          res.redirect('/getauthors');
       });
 });
 
@@ -241,12 +254,25 @@ app.post("/updateauthor", function (req, res) {
 //   res.redirect('/getbooks');
 // });
 
+// Game: static assets (/game/game.js, /game/audio.js, ...), page and JSON API
+app.use('/game', express.static(path.join(__dirname, 'public/game'), { redirect: false }));
+app.use(gameRoutes);
+app.use(gameRoutes.jsonErrorHandler);
+
+// Catch-all 404 - must stay LAST
 app.get('/*', function(req, res) {
     let fileName = viewsPath + "404.html";
-    res.sendFile(fileName);
+    res.status(404).sendFile(fileName);
 });
 
-app.listen(8080);
+if (require.main === module) {
+  connectDB();
+  app.listen(PORT, function () {
+    console.log('Server listening on http://localhost:' + PORT);
+  });
+}
+
+module.exports = app;
 
 function generateISBN() {
   try{
