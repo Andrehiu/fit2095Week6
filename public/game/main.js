@@ -89,7 +89,7 @@ function toLogical(e) {
 }
 
 addEventListener('keydown', (e) => {
-  if (e.target && e.target.tagName === 'INPUT') return;
+  if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'text') return;
   const k = e.code;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k) && game.state === 'playing') e.preventDefault();
   if (!keys.has(k)) onKeyPress(k);
@@ -126,6 +126,8 @@ canvas.addEventListener('pointerdown', (e) => {
     canvas.setPointerCapture(e.pointerId);
     return;
   }
+  if (touch.enabled) { touch.enabled = false; document.body.classList.remove('touch'); }
+  canvas.setPointerCapture(e.pointerId);
   mouse.x = p.x; mouse.y = p.y; mouse.seen = true;
   if (e.button === 0) mouse.down = true;
   if (e.button === 2 && game.state === 'playing') actions.shhh = true;
@@ -146,6 +148,7 @@ const endPointer = (e) => {
 };
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
+addEventListener('pointerup', (e) => { if (e.pointerType !== 'touch' && e.button === 0) mouse.down = false; });
 
 function enableTouch() {
   if (touch.enabled) return;
@@ -229,9 +232,15 @@ function startRun() {
   startWave(1);
 }
 
+function clearWorld() {
+  for (const arr of [enemies, books, hazards, rings, telegraphs, pickups, particles, texts, flashes]) arr.length = 0;
+  spawnQueue = [];
+  game.boss = null; game.bannerT = 0;
+}
+
 function startWave(n) {
   game.wave = n;
-  for (const arr of [enemies, books, hazards, rings, telegraphs, pickups]) arr.length = 0;
+  clearWorld();
   arena = generateArena(game.seed, n);
   buildBackground();
   flowCell = -1;
@@ -252,6 +261,8 @@ function waveCleared() {
   game.score += bonus;
   banner('SHELF CLEARED!', `+${bonus.toLocaleString()} ${game.noHitWave ? '(flawless bonus!)' : ''}`);
   sound.play('wave');
+  for (const h of hazards) burst(h.x, h.y, 3, ['#ff6b6b', '#fff'], 60, 0.3);
+  hazards.length = 0; rings.length = 0;
   game.state = 'waveclear';
   game.clearT = 1.8;
   // Vacuum up leftover pickups for convenience.
@@ -365,13 +376,14 @@ function updateSpawning(dt) {
 }
 
 function materialise(type, x, y) {
+  if (type !== 'boss') { x += (Math.random() - 0.5) * 8; y += (Math.random() - 0.5) * 8; }
   burst(x, y, 14, ['#b48cff', '#fff'], 120, 0.5);
   if (type === 'worm') {
     let prev = makeEnemy('worm', x, y, { hp: Math.round(4 * (1 + game.wave * 0.08)), head: true });
     prev.maxHp = prev.hp;
     for (let i = 0; i < 6; i++) prev = makeEnemy('worm', x, y, { leader: prev });
   } else if (type === 'boss') {
-    const hp = 170 + game.wave * 30;
+    const hp = 110 + game.wave * 22;
     const e = makeEnemy('boss', x, y, { hp, maxHp: hp, name: pickAuthor(), atkT: 2, spiral: 0, summonT: 6, mode: 'idle', modeT: 0 });
     game.boss = e;
     banner(`ROGUE AUTHOR`, e.name);
@@ -694,7 +706,7 @@ function bossAI(e, dt) {
   if (phase === 1 && e.atkT <= 0) { e.atkT = 1.25; fan(e.x, e.y, aim, 5, 0.22, 210); }
   if (phase === 2) {
     e.spiral += dt * 2.3;
-    if (e.atkT <= 0) { e.atkT = 0.11; for (const o of [0, Math.PI]) shootHazard(e.x, e.y, e.spiral + o, 165); }
+    if (e.atkT <= 0) { e.atkT = 0.14; for (const o of [0, Math.PI]) shootHazard(e.x, e.y, e.spiral + o, 165); }
     e.summonT -= dt;
     if (e.summonT <= 0) { e.summonT = 7; for (let i = 0; i < 3; i++) telegraphs.push({ type: 'bunny', ...spawnPoint(), t: 0, dur: 0.85 }); }
   }
@@ -760,7 +772,7 @@ function killEnemy(e) {
 
 function hurtPlayer(sx, sy) {
   const p = player;
-  if (p.inv > 0 || p.dashT > 0 || game.state === 'dying' || game.state === 'gameover') return;
+  if (p.inv > 0 || p.dashT > 0 || game.state !== 'playing') return;
   p.hp -= 1;
   p.inv = stats.iframes;
   game.noHitWave = false;
@@ -1374,8 +1386,7 @@ document.addEventListener('click', (e) => {
   else if (act === 'leaderboard') { showScreen('leaderboard'); loadLeaderboard($('#lbList')); }
   else if (act === 'back') showScreen(game.state === 'paused' ? settingsReturn : 'title');
   else if (act === 'resume') resume();
-  else if (act === 'quit') { game.state = 'title'; sound.setIntensity(0); sound.setMuffled(false); enemies.length = 0; showScreen('title'); }
-  else if (act === 'menu') { game.state = 'title'; showScreen('title'); }
+  else if (act === 'quit' || act === 'menu') { game.state = 'title'; sound.setIntensity(0); sound.setMuffled(false); clearWorld(); player = makePlayer(); showScreen('title'); }
 });
 
 async function loadLeaderboard(list, highlight = null) {
